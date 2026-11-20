@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">QuickStart App</string>
+    <string name="welcome_message">Welcome to QuickStart App created with Nexa IDE!</string>
+</resources>
