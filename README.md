@@ -1,9 +1,9 @@
-# QuickStart App
+# TodoListApp
 
 Built with Nexa IDE - Mobile Android IDE & Cloud APK Builder.
 
-- **Package**: `com.example.quickstart`
-- **Template**: `Kotlin Android Project`
+- **Package**: `com.example.todolist`
+- **Template**: `Kotlin Compose App`
 - **Language**: `Kotlin`
 
 ### Cloud Build with GitHub Actions

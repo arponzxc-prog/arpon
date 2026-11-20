@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "QuickStart App"
+rootProject.name = "TodoListApp"
 include(":app")

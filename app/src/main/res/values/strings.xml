@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">QuickStart App</string>
-    <string name="welcome_message">Welcome to QuickStart App created with Nexa IDE!</string>
+    <string name="app_name">TodoListApp</string>
+    <string name="welcome_message">Welcome to TodoListApp created with Nexa IDE!</string>
 </resources>
