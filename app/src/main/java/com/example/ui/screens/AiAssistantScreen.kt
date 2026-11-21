@@ -34,12 +34,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.ai.*
+import com.example.data.ai.agent.*
 import com.example.data.filesystem.ProjectFileManager
 import com.example.data.local.entity.ProjectEntity
 import com.example.data.security.SecureTokenManager
 import com.example.ui.components.AiDiffDialog
 import com.example.ui.theme.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicReference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,6 +78,28 @@ fun AiAssistantScreen(
     val canExecuteAgent = fileManager != null && onCreateProjectRecord != null
     var agentModeEnabled by remember(canExecuteAgent) { mutableStateOf(canExecuteAgent) }
     var currentTargetProject by remember(activeProject) { mutableStateOf(activeProject) }
+    val projectRef = remember { AtomicReference<ProjectEntity?>(activeProject) }
+    LaunchedEffect(currentTargetProject) { projectRef.set(currentTargetProject) }
+    var runJob by remember { mutableStateOf<Job?>(null) }
+    var undoCount by remember { mutableStateOf(0) }
+
+    val agentRunner = remember(canExecuteAgent) {
+        if (fileManager != null && onCreateProjectRecord != null) {
+            NexaAgentRunner(
+                transport = AgentModelClient(context),
+                host = object : AgentProjectHost {
+                    override fun currentProject(): ProjectEntity? = projectRef.get()
+                    override suspend fun createProject(name: String, packageName: String, template: String, language: String): ProjectEntity {
+                        val created = withContext(Dispatchers.IO) { fileManager.createProject(name, packageName, template, language) }
+                        onCreateProjectRecord(created)
+                        projectRef.set(created)
+                        withContext(Dispatchers.Main) { currentTargetProject = created }
+                        return created
+                    }
+                }
+            )
+        } else null
+    }
 
     var messages by remember {
         mutableStateOf(
@@ -111,7 +139,7 @@ fun AiAssistantScreen(
             "Nexa AI is thinking..."
         }
 
-        coroutineScope.launch {
+        runJob = coroutineScope.launch {
             try {
                 if (isCodeAction && !currentFileContent.isNullOrBlank()) {
                     val fileName = currentFileName ?: "ActiveFile"
@@ -150,6 +178,46 @@ fun AiAssistantScreen(
                             messages = messages + AiChatMessage(isUser = false, text = response)
                         }
                     }
+                } else if (agentModeEnabled && agentRunner != null) {
+                    val projectIdBefore = projectRef.get()?.id
+                    val result = withContext(Dispatchers.IO) {
+                        agentRunner.send(
+                            prompt = prompt,
+                            events = object : AgentEvents {
+                                override fun onModelThinking(step: Int) { statusLabel = "Nexa AI কাজ করছে / working… ($step)" }
+                                override fun onToolStarted(call: ToolCall) { statusLabel = AgentStatusText.label(call) }
+                                override fun onNotice(message: String) { statusLabel = message }
+                            },
+                            currentFile = currentFileName
+                        )
+                    }
+                    val proj = projectRef.get()
+                    val changed = (result.filesWritten + result.filesEdited).distinct()
+                    val exec = if (proj != null && result.changedFileCount > 0) {
+                        AiExecutionResult(
+                            project = proj,
+                            createdNewProject = proj.id != projectIdBefore,
+                            writtenFiles = changed,
+                            skippedFiles = emptyList(),
+                            summary = result.finalText
+                        )
+                    } else null
+                    if (proj != null && result.changedFileCount > 0) onProjectUpdated?.invoke(proj.copy(lastModifiedAt = System.currentTimeMillis()))
+                    undoCount = if (agentRunner.canUndo()) result.changedFileCount else 0
+                    val text = buildString {
+                        val title = AgentStatusText.summaryTitle(result)
+                        if (title.isNotBlank()) appendLine(title)
+                        if (result.finalText.isNotBlank()) appendLine(result.finalText)
+                        result.pendingQuestion?.let { appendLine(); appendLine(it.toDisplayText()) }
+                        result.notices.distinct().forEach { appendLine(it) }
+                        if (result.remainingProblems.isNotEmpty()) {
+                            appendLine()
+                            appendLine("এখনও ${result.remainingProblems.size}টি সমস্যা বাকি / ${result.remainingProblems.size} problem(s) remain:")
+                            result.remainingProblems.take(5).forEach { appendLine("• ${it.file}:${it.line} ${it.message}") }
+                        }
+                        if (result.failedToolCalls > 0) appendLine("(${result.failedToolCalls} টুল কল ব্যর্থ হয়েছিল ও মডেল শুধরে নিয়েছে / tool call(s) failed and were retried)")
+                    }.trim().ifBlank { "✅ Done" }
+                    messages = messages + AiChatMessage(isUser = false, text = text, executionResult = exec)
                 } else {
                     val projectCtx = if (agentModeEnabled && fileManager != null) {
                         NexaAiAgentEngine.buildProjectContextSummary(currentTargetProject, fileManager)
@@ -189,6 +257,9 @@ fun AiAssistantScreen(
                 }
 
                 listState.animateScrollToItem((messages.size - 1).coerceAtLeast(0))
+            } catch (e: CancellationException) {
+                undoCount = if (agentRunner?.canUndo() == true) undoCount.coerceAtLeast(1) else 0
+                messages = messages + AiChatMessage(isUser = false, text = "⏹ থামানো হয়েছে / Stopped.")
             } catch (e: Exception) {
                 messages = messages + AiChatMessage(
                     isUser = false,
@@ -421,6 +492,29 @@ fun AiAssistantScreen(
             }
         }
 
+        if (undoCount > 0 && agentRunner != null) {
+            Surface(color = Slate900, modifier = Modifier.fillMaxWidth().border(1.dp, Slate800)) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "$undoCount ফাইল বদলেছে / files changed",
+                        fontSize = 12.sp, color = Color.White, modifier = Modifier.weight(1f)
+                    )
+                    TextButton(
+                        onClick = {
+                            val restored = agentRunner.undo()
+                            undoCount = 0
+                            projectRef.get()?.let { p -> coroutineScope.launch { onProjectUpdated?.invoke(p.copy(lastModifiedAt = System.currentTimeMillis())) } }
+                            messages = messages + AiChatMessage(isUser = false, text = "↩ ${restored.size}টি ফাইল আগের অবস্থায় ফেরানো হয়েছে / files restored.")
+                        },
+                        modifier = Modifier.testTag("ai_undo_button")
+                    ) { Text("Undo", color = NeonCyan) }
+                }
+            }
+        }
+
         // Input Bar
         Surface(
             color = Slate900,
@@ -462,20 +556,22 @@ fun AiAssistantScreen(
 
                 IconButton(
                     onClick = {
-                        if (inputText.isNotBlank() && !isLoading) {
+                        if (isLoading) {
+                            runJob?.cancel()
+                        } else if (inputText.isNotBlank()) {
                             sendPrompt(inputText)
                         }
                     },
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .background(if (inputText.isNotBlank() && !isLoading) NeonCyan else Slate800)
+                        .background(if (isLoading) AmberYellow else if (inputText.isNotBlank()) NeonCyan else Slate800)
                         .testTag("ai_send_button")
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send",
-                        tint = if (inputText.isNotBlank() && !isLoading) Slate950 else Color.Gray,
+                        imageVector = if (isLoading) Icons.Default.Stop else Icons.AutoMirrored.Filled.Send,
+                        contentDescription = if (isLoading) "Stop / থামান" else "Send / পাঠান",
+                        tint = if (isLoading || inputText.isNotBlank()) Slate950 else Color.Gray,
                         modifier = Modifier.size(20.dp)
                     )
                 }
