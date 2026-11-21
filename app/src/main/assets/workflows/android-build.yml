@@ -1,0 +1,187 @@
+name: Android CI Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (debug, release, bundle)'
+        required: true
+        default: 'debug'
+      jdk_version:
+        description: 'JDK Version (17, 21)'
+        required: false
+        default: '17'
+      clean_build:
+        description: 'Clean project before build (true, false)'
+        required: false
+        default: 'true'
+      enable_minify:
+        description: 'Enable R8 Minify & Resource Shrinking (true, false)'
+        required: false
+        default: 'false'
+      module_name:
+        description: 'Target Gradle module (:app)'
+        required: false
+        default: ':app'
+      version_code:
+        description: 'Optional Version Code override'
+        required: false
+        default: ''
+      version_name:
+        description: 'Optional Version Name override'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    name: Build Android APK / AAB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ github.event.inputs.jdk_version || '17' }}
+          distribution: 'temurin'
+
+      - name: Accept Android SDK Licenses
+        run: yes | sdkmanager --licenses > /dev/null || true
+
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup Gradle (bootstrap)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Detect project directory
+        id: detect-project
+        run: |
+          PROJECT_DIR="."
+          if [ ! -f settings.gradle ] && [ ! -f settings.gradle.kts ]; then
+            FOUND=$(find . -maxdepth 3 \( -name settings.gradle -o -name settings.gradle.kts \) -not -path "*/.*" -exec dirname {} \; | head -n 1)
+            if [ -n "$FOUND" ]; then PROJECT_DIR="$FOUND"; fi
+          fi
+          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
+          echo "=== Project dir: $PROJECT_DIR ==="
+          find "$PROJECT_DIR" -maxdepth 3 \( -name "build.gradle" -o -name "build.gradle.kts" -o -name "settings.gradle*" \) -not -path "*/build/*"
+
+      - name: Prepare Gradle wrapper (project's own Gradle version)
+        working-directory: ${{ steps.detect-project.outputs.project_dir }}
+        run: |
+          if [ ! -f gradlew ] || [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            GV=""
+            if [ -f gradle/wrapper/gradle-wrapper.properties ]; then
+              GV=$(sed -n 's#.*gradle-\([0-9][0-9.]*\)-\(bin\|all\)\.zip.*#\1#p' gradle/wrapper/gradle-wrapper.properties | head -n 1)
+            fi
+            GV=${GV:-8.10.2}
+            echo "Generating Gradle wrapper for version $GV"
+            rm -rf /tmp/wrap && mkdir -p /tmp/wrap
+            echo "" > /tmp/wrap/settings.gradle
+            (cd /tmp/wrap && gradle wrapper --gradle-version "$GV")
+            mkdir -p gradle/wrapper
+            cp /tmp/wrap/gradlew ./gradlew
+            cp /tmp/wrap/gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.jar
+            if [ ! -f gradle/wrapper/gradle-wrapper.properties ]; then
+              cp /tmp/wrap/gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
+            fi
+          fi
+          chmod +x gradlew
+          ./gradlew --version
+
+      - name: Configure Signing Keystores (Production Secrets or Fallback)
+        working-directory: ${{ steps.detect-project.outputs.project_dir }}
+        env:
+          RELEASE_KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          # 1. Debug Keystore
+          if [ ! -f debug.keystore ]; then
+            keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey \
+              -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+          # 2. Release Keystore from GitHub Actions Secrets or local fallback
+          if [ -n "$RELEASE_KEYSTORE_B64" ]; then
+            echo "Decoding production release keystore from encrypted GitHub Secret..."
+            echo "$RELEASE_KEYSTORE_B64" | base64 --decode > my-upload-key.jks
+          elif [ ! -f my-upload-key.jks ]; then
+            echo "Generating temporary upload keystore (no RELEASE_KEYSTORE_BASE64 secret configured)..."
+            keytool -genkeypair -v -keystore my-upload-key.jks -storepass android -alias upload \
+              -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Upload,O=Nexa,C=US"
+          fi
+
+      - name: Build with Gradle
+        working-directory: ${{ steps.detect-project.outputs.project_dir }}
+        env:
+          BUILD_TYPE: ${{ github.event.inputs.build_type }}
+          CLEAN_BUILD: ${{ github.event.inputs.clean_build }}
+          ENABLE_MINIFY: ${{ github.event.inputs.enable_minify }}
+          MODULE_NAME: ${{ github.event.inputs.module_name }}
+          VERSION_CODE: ${{ github.event.inputs.version_code }}
+          VERSION_NAME: ${{ github.event.inputs.version_name }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || 'android' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'upload' }}
+        run: |
+          START_SEC=$(date +%s)
+          MOD_PREFIX="${MODULE_NAME:-:app}"
+          case "$BUILD_TYPE" in
+            release) MAIN_TASK="${MOD_PREFIX}:assembleRelease" ;;
+            bundle)  MAIN_TASK="${MOD_PREFIX}:bundleRelease" ;;
+            *)       MAIN_TASK="${MOD_PREFIX}:assembleDebug" ;;
+          esac
+
+          TASKS="$MAIN_TASK"
+          if [ "$CLEAN_BUILD" = "true" ]; then
+            TASKS="clean $MAIN_TASK"
+          fi
+
+          EXTRA_PROPS="-PnexaMinify=${ENABLE_MINIFY:-false}"
+          if [ -n "$VERSION_CODE" ]; then
+            EXTRA_PROPS="$EXTRA_PROPS -PnexaVersionCode=$VERSION_CODE"
+          fi
+          if [ -n "$VERSION_NAME" ]; then
+            EXTRA_PROPS="$EXTRA_PROPS -PnexaVersionName=$VERSION_NAME"
+          fi
+
+          echo "Running ./gradlew $TASKS $EXTRA_PROPS"
+          ./gradlew $TASKS $EXTRA_PROPS --stacktrace --no-daemon -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m"
+
+          END_SEC=$(date +%s)
+          ELAPSED=$((END_SEC - START_SEC))
+          echo "=== Nexa Build Duration: ${ELAPSED}s ==="
+
+      - name: Upload APK / AAB Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-Artifact
+          path: |
+            **/build/outputs/apk/**/*.apk
+            **/build/outputs/bundle/**/*.aab
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Build Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-Reports-Failure
+          path: |
+            **/build/reports/
+          if-no-files-found: ignore
+          retention-days: 3

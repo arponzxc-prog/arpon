@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nexa IDE</string>
+    <string name="app_subtitle">মোবাইল IDE ও APK বিল্ডার</string>
+
+    <!-- নেভিগেশন -->
+    <string name="nav_home">হোম</string>
+    <string name="nav_projects">প্রজেক্টস</string>
+    <string name="nav_build">বিল্ড</string>
+    <string name="nav_settings">সেটিংস</string>
+    <string name="nav_build_title">APK / AAB বিল্ড</string>
+
+    <!-- ড্রয়ার আইটেম -->
+    <string name="drawer_projects">আমার প্রজেক্টস</string>
+    <string name="drawer_editor">কোড এডিটর</string>
+    <string name="drawer_build_history">বিল্ড হিস্ট্রি</string>
+    <string name="drawer_github_studio">GitHub স্টুডিও</string>
+    <string name="drawer_github_account">GitHub অ্যাকাউন্ট</string>
+    <string name="drawer_terminal">টার্মিনাল</string>
+    <string name="drawer_testing_lab">টেস্টিং ল্যাব</string>
+    <string name="drawer_asset_studio">অ্যাসেট স্টুডিও</string>
+    <string name="drawer_downloads">ডাউনলোডস</string>
+    <string name="drawer_notifications">নোটিফিকেশন</string>
+    <string name="drawer_settings">সেটিংস</string>
+    <string name="drawer_preview">লাইভ প্রিভিউ স্টুডিও</string>
+    <string name="drawer_ai_assistant">Nexa AI অ্যাসিস্ট্যান্ট</string>
+    <string name="drawer_about">অ্যাপ সম্পর্কে</string>
+
+    <!-- Webapp APK কাস্টমাইজার -->
+    <string name="webapp_dialog_title">Webapp APK কাস্টমাইজার</string>
+    <string name="webapp_dialog_subtitle">অ্যাপের নাম, আইকন ও স্প্ল্যাশ, WebView নিরাপত্তা এবং পারমিশন কনফিগার করুন।</string>
+    <string name="webapp_tab_identity">পরিচিতি</string>
+    <string name="webapp_tab_appearance">আইকন ও স্প্ল্যাশ</string>
+    <string name="webapp_tab_webview">WebView</string>
+    <string name="webapp_tab_permissions">পারমিশন</string>
+
+    <string name="webapp_app_name">অ্যাপের নাম</string>
+    <string name="webapp_package_name">প্যাকেজ নাম (যেমন: com.my.webapp)</string>
+    <string name="webapp_version_name">ভার্সন নাম</string>
+    <string name="webapp_version_code">ভার্সন কোড</string>
+    <string name="webapp_auto_increment_version">বিল্ড হিস্ট্রি থেকে ভার্সন কোড স্বয়ংক্রিয়ভাবে বাড়ান</string>
+    <string name="webapp_orientation_label">স্ক্রিন ওরিয়েন্টেশন</string>
+
+    <string name="webapp_preview_heading">লাইভ অ্যাপ প্রিভিউ</string>
+    <string name="webapp_pick_logo">লোগো বাছাই করুন (PNG/JPG/SVG)</string>
+    <string name="webapp_pick_splash">স্প্ল্যাশ ছবি বাছাই করুন</string>
+    <string name="webapp_clear_image">মুছুন</string>
+    <string name="webapp_icon_shape">আইকনের আকার</string>
+    <string name="webapp_adaptive_icon">অ্যাডাপ্টিভ আইকন তৈরি (Android 8+)</string>
+    <string name="webapp_monochrome_icon">মনোক্রোম থিমড আইকন (Android 13+)</string>
+    <string name="webapp_icon_bg_color">আইকনের ব্যাকগ্রাউন্ড রঙ</string>
+    <string name="webapp_show_splash">শুরুতে স্প্ল্যাশ স্ক্রিন দেখান</string>
+    <string name="webapp_splash_title">স্প্ল্যাশ স্ক্রিনের শিরোনাম</string>
+    <string name="webapp_splash_bg_color">স্প্ল্যাশ ব্যাকগ্রাউন্ড রঙ</string>
+
+    <string name="webapp_remote_url_mode">রিমোট ওয়েবসাইট URL মোড</string>
+    <string name="webapp_remote_url_label">ওয়েবসাইট URL (https://...)</string>
+    <string name="webapp_fullscreen_mode">ফুলস্ক্রিন (স্ট্যাটাস বার লুকান)</string>
+    <string name="webapp_status_bar_color">স্ট্যাটাস বারের রঙ</string>
+    <string name="webapp_pull_to_refresh">টেনে রিফ্রেশ (Pull-to-Refresh)</string>
+    <string name="webapp_offline_fallback">অফলাইন ফলব্যাক পেজ ও রিট্রাই বাটন দেখান</string>
+    <string name="webapp_enable_js">JavaScript চালু করুন</string>
+    <string name="webapp_enable_dom">DOM Storage চালু করুন (localStorage / IndexedDB)</string>
+    <string name="webapp_enable_zoom">জুম কন্ট্রোল চালু করুন</string>
+    <string name="webapp_enable_js_bridge">window.NexaApp JS ব্রিজ চালু করুন</string>
+    <string name="webapp_mixed_content_label">Mixed Content নিরাপত্তা নীতি</string>
+    <string name="webapp_cleartext_traffic">Cleartext HTTP ট্রাফিক অনুমতি দিন</string>
+
+    <string name="webapp_permissions_hint">ক্যামেরা, মাইক্রোফোন ও লোকেশন শুধু ওয়েবপেজ চাইলে তখনই চাওয়া হবে, আর ব্যবহারকারী না দিলে স্পষ্টভাবে ডিনাই হবে।</string>
+    <string name="webapp_save_only">সেভ করুন</string>
+    <string name="webapp_build_now">এখনই APK বিল্ড</string>
+    <string name="webapp_cancel">বাতিল</string>
+    <string name="webapp_customize_banner">Webapp আইকন, স্প্ল্যাশ ও পারমিশন কাস্টমাইজ করুন</string>
+    <string name="ai_failover_title">অটো মডেল ফেইলওভার</string>
+    <string name="ai_failover_desc">লিমিট শেষ বা ত্রুটি হলে ব্যাকআপ মডেলে শিফট</string>
+    <string name="ai_failover_order">মডেলের ক্রম (প্রথমটি প্রাইমারি)</string>
+    <string name="ai_move_up">উপরে নিন</string>
+    <string name="ai_move_down">নিচে নিন</string>
+    <string name="ai_usage_title">ব্যবহার ড্যাশবোর্ড</string>
+    <string name="ai_usage_refresh">রিফ্রেশ</string>
+    <string name="ai_usage_reset">রিসেট</string>
+    <string name="ai_usage_empty">এখনো কোনো রিকোয়েস্ট নেই (কন্টেন্ট কখনো সংরক্ষণ হয় না)।</string>
+    <string name="ai_usage_row">%1$s: %2$d রিকোয়েস্ট, %3$d ব্যর্থ, %4$d ফেইলওভার, ~%5$d টোকেন (আনুমানিক)</string>
+    <string name="action_close">বন্ধ করুন</string>
+    <string name="action_cancel">বাতিল</string>
+    <string name="search_project_title">প্রজেক্টে সার্চ</string>
+    <string name="search_query">খুঁজুন</string>
+    <string name="search_replace_with">যা দিয়ে বদলাবেন</string>
+    <string name="search_regex">Regex</string>
+    <string name="search_case">বড়/ছোট হাতের</string>
+    <string name="search_word">পুরো শব্দ</string>
+    <string name="search_action">সার্চ</string>
+    <string name="search_replace_all">সব রিপ্লেস</string>
+    <string name="search_no_results">কিছু পাওয়া যায়নি</string>
+    <string name="search_invalid_regex">রেগুলার এক্সপ্রেশন ভুল</string>
+    <string name="search_replace_confirm">%1$d টি ফাইলে রিপ্লেস করবেন? এটি ডিস্কের ফাইল বদলাবে।</string>
+    <string name="emmet_title">Emmet</string>
+    <string name="emmet_hint">যেমন ul>li*3 বা div.box>h1{Title}</string>
+    <string name="emmet_css_mode">CSS মোড (m10, d:f)</string>
+    <string name="emmet_invalid">এই সংক্ষেপ সাপোর্টেড নয়</string>
+    <string name="emmet_insert">ঢোকান</string>
+</resources>

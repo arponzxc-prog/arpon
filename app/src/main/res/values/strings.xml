@@ -1,4 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TodoListApp</string>
-    <string name="welcome_message">Welcome to TodoListApp created with Nexa IDE!</string>
+    <string name="app_name">Nexa IDE</string>
+    <string name="app_subtitle">Mobile IDE &amp; APK Builder</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_projects">Projects</string>
+    <string name="nav_build">Build</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_build_title">Build APK / AAB</string>
+
+    <!-- Drawer Items -->
+    <string name="drawer_projects">My Projects</string>
+    <string name="drawer_editor">Code Editor</string>
+    <string name="drawer_build_history">Build History</string>
+    <string name="drawer_github_studio">GitHub Studio</string>
+    <string name="drawer_github_account">GitHub Account</string>
+    <string name="drawer_terminal">Integrated Terminal</string>
+    <string name="drawer_testing_lab">Testing Lab</string>
+    <string name="drawer_asset_studio">Asset Studio</string>
+    <string name="drawer_downloads">Downloads</string>
+    <string name="drawer_notifications">Notifications</string>
+    <string name="drawer_settings">Settings</string>
+    <string name="drawer_preview">Live Preview Studio</string>
+    <string name="drawer_ai_assistant">Nexa AI Assistant</string>
+    <string name="drawer_about">About</string>
+
+    <!-- Webapp APK Customizer -->
+    <string name="webapp_dialog_title">Webapp APK Customizer</string>
+    <string name="webapp_dialog_subtitle">Configure app identity, icon &amp; splash, WebView security, and runtime permissions.</string>
+    <string name="webapp_tab_identity">Identity</string>
+    <string name="webapp_tab_appearance">Icon &amp; Splash</string>
+    <string name="webapp_tab_webview">WebView</string>
+    <string name="webapp_tab_permissions">Permissions</string>
+
+    <string name="webapp_app_name">App Name</string>
+    <string name="webapp_package_name">Package Name (e.g. com.my.webapp)</string>
+    <string name="webapp_version_name">Version Name</string>
+    <string name="webapp_version_code">Version Code</string>
+    <string name="webapp_auto_increment_version">Auto-increment version code from build history</string>
+    <string name="webapp_orientation_label">Screen Orientation</string>
+
+    <string name="webapp_preview_heading">Live App Preview</string>
+    <string name="webapp_pick_logo">Pick Logo (PNG/JPG/SVG)</string>
+    <string name="webapp_pick_splash">Pick Splash Image</string>
+    <string name="webapp_clear_image">Clear</string>
+    <string name="webapp_icon_shape">Icon Shape</string>
+    <string name="webapp_adaptive_icon">Generate Adaptive Icon (Android 8+)</string>
+    <string name="webapp_monochrome_icon">Monochrome Themed Icon (Android 13+)</string>
+    <string name="webapp_icon_bg_color">Icon Background Color</string>
+    <string name="webapp_show_splash">Show Opening Splash Screen</string>
+    <string name="webapp_splash_title">Splash Screen Title</string>
+    <string name="webapp_splash_bg_color">Splash Background Color</string>
+
+    <string name="webapp_remote_url_mode">Remote Website URL Mode</string>
+    <string name="webapp_remote_url_label">Website URL (https://...)</string>
+    <string name="webapp_fullscreen_mode">Fullscreen (Hide Status Bar)</string>
+    <string name="webapp_status_bar_color">Status Bar Color</string>
+    <string name="webapp_pull_to_refresh">Enable Pull-to-Refresh</string>
+    <string name="webapp_offline_fallback">Show Offline Fallback Page with Retry</string>
+    <string name="webapp_enable_js">Enable JavaScript</string>
+    <string name="webapp_enable_dom">Enable DOM Storage (localStorage / IndexedDB)</string>
+    <string name="webapp_enable_zoom">Enable Pinch Zoom Controls</string>
+    <string name="webapp_enable_js_bridge">Enable window.NexaApp JS Bridge</string>
+    <string name="webapp_mixed_content_label">Mixed Content Security Policy</string>
+    <string name="webapp_cleartext_traffic">Allow Cleartext HTTP Traffic</string>
+
+    <string name="webapp_permissions_hint">Camera, Microphone &amp; Location are requested lazily ONLY when a webpage triggers them, and denied if declined.</string>
+    <string name="webapp_save_only">Save Config</string>
+    <string name="webapp_build_now">Build APK Now</string>
+    <string name="webapp_cancel">Cancel</string>
+    <string name="webapp_customize_banner">Customize Webapp Icon, Splash &amp; Permissions</string>
+    <string name="ai_failover_title">Auto model failover</string>
+    <string name="ai_failover_desc">Switch to a backup model on limit / error</string>
+    <string name="ai_failover_order">Model order (first = primary)</string>
+    <string name="ai_move_up">Move up</string>
+    <string name="ai_move_down">Move down</string>
+    <string name="ai_usage_title">Usage dashboard</string>
+    <string name="ai_usage_refresh">Refresh</string>
+    <string name="ai_usage_reset">Reset</string>
+    <string name="ai_usage_empty">No requests yet (content is never stored).</string>
+    <string name="ai_usage_row">%1$s: %2$d req, %3$d failed, %4$d failover, ~%5$d tokens (est.)</string>
+    <string name="action_close">Close</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="search_project_title">Search in project</string>
+    <string name="search_query">Search</string>
+    <string name="search_replace_with">Replace with</string>
+    <string name="search_regex">Regex</string>
+    <string name="search_case">Case</string>
+    <string name="search_word">Word</string>
+    <string name="search_action">Search</string>
+    <string name="search_replace_all">Replace all</string>
+    <string name="search_no_results">No results</string>
+    <string name="search_invalid_regex">Invalid regular expression</string>
+    <string name="search_replace_confirm">Replace in %1$d file(s)? This changes files on disk.</string>
+    <string name="emmet_title">Emmet</string>
+    <string name="emmet_hint">e.g. ul>li*3  or  div.box>h1{Title}</string>
+    <string name="emmet_css_mode">CSS mode (m10, d:f)</string>
+    <string name="emmet_invalid">Unsupported abbreviation</string>
+    <string name="emmet_insert">Insert</string>
 </resources>
